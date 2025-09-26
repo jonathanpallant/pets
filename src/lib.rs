@@ -99,6 +99,14 @@ unsafe extern "C" fn PendSV() {
     cmp     r2, #-1
     beq     1f
 
+    //
+    // Stack the current task
+    //
+    // r1 holds the scheduler object's address
+    // r2 holds the current task ID
+    // r3 holds the task list's address
+    //
+
     // r2 = the current task byte offset 
     lsl     r2, {task_size_bits}
 
@@ -110,6 +118,13 @@ unsafe extern "C" fn PendSV() {
 
     // save the stack pointer (in r0) to the task object
     str     r0, [r3, r2]
+
+    //
+    // Pop the next task
+    //
+    // r1 holds the scheduler object's address
+    // r3 holds the task list's address
+    //
 
     1:
 
@@ -126,11 +141,21 @@ unsafe extern "C" fn PendSV() {
     // Set the current task stack pointer
     msr     psp, r0
 
+    //
+    // Update the Current Task ID
+    //
+    // r1 holds the scheduler object's address
+    //
+
     // copy the next task id to the current task id
     ldr     r2, [r1, {next_task_offset}]
     str     r2, [r1, {current_task_offset}]
 
+    //
     // return to thread mode on the process stack
+    //
+
+    // This is the magic LR value for 'return to thread mode process stack'
     mov     lr, #0xFFFFFFFD
     bx      lr
     "#,
