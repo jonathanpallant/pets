@@ -3,6 +3,9 @@
 //! PETS is a very basic round-robin pre-emptive scheduler. You can register
 //! multiple tasks to execute and it will execute each of them in turn.
 //!
+//! It currently only works on Arm Cortex-M - either Armv7-M, Armv7E-M or
+//! Armv8-M Main should be fine.
+//!
 //! It's basically an exercise in seeing just how small an RTOS kernel you
 //! could get away with, whilst still being somewhat useful.
 //!

@@ -1,4 +1,4 @@
-# P.E.T.S - a pre-emptive time slicer
+# P.E.T.S - a pre-emptive time slicer for Arm Cortex-M
 
 See [`src/lib.rs`](./src/lib.rs) for more details.
 
