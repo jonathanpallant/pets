@@ -287,15 +287,14 @@ impl Scheduler {
             let current_task = self.current_task.load(Ordering::Relaxed);
             let mut selected_next_task = None;
             let num_tasks = self.task_list.len();
-            // go through all the tasks, starting with the current task
-            for (idx, task) in self
-                .task_list
-                .iter()
-                .enumerate()
-                .chain(self.task_list.iter().enumerate())
-                .skip(current_task + 1)
-                .take(num_tasks)
-            {
+            // Go through all the tasks. We start with the one after the
+            // current task, so we don't keep pickng the same task.
+            for mut idx in (current_task + 1)..=(current_task + num_tasks) {
+                // do the wrap-around
+                while idx >= num_tasks {
+                    idx -= num_tasks;
+                }
+                let task = &self.task_list[idx];
                 // is this a task we can run right now?
                 if !task.parked() {
                     selected_next_task = Some(idx);
