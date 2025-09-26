@@ -1,4 +1,4 @@
-//! A simple example showing how to use pets
+//! A simple example showing how to use pets with nested task and stack definitions.
 //!
 //! It starts three tasks, each of which periodically prints a defmt log and
 //! then sleeps.
@@ -15,13 +15,23 @@ use defmt_semihosting as _;
 
 const SYSTICKS_PER_SCHED_TICK: u32 = 100_000;
 
-static TASK_LIST: [Task; 3] = [
-    Task::new(rabbits, &RABBIT_STACK),
-    Task::new(hamsters, &HAMSTER_STACK),
-    Task::new(cats, &CAT_STACK),
-];
-
-static SCHEDULER: pets::Scheduler = pets::Scheduler::new(&TASK_LIST);
+static SCHEDULER: Scheduler = Scheduler::new({
+    static TASK_LIST: [Task; 3] = [
+        Task::new(rabbits, {
+            static STACK: Stack<1024> = Stack::new();
+            &STACK
+        }),
+        Task::new(hamsters, {
+            static STACK: Stack<1024> = Stack::new();
+            &STACK
+        }),
+        Task::new(cats, {
+            static STACK: Stack<1024> = Stack::new();
+            &STACK
+        }),
+    ];
+    &TASK_LIST
+});
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
@@ -29,8 +39,6 @@ fn main() -> ! {
     defmt::info!("Hello!");
     SCHEDULER.start(cp.SYST, SYSTICKS_PER_SCHED_TICK);
 }
-
-static RABBIT_STACK: Stack<1024> = Stack::new();
 
 /// Our 'rabbit' task
 fn rabbits() -> ! {
@@ -40,8 +48,6 @@ fn rabbits() -> ! {
     }
 }
 
-static HAMSTER_STACK: Stack<1024> = Stack::new();
-
 /// Our 'hamster' task
 fn hamsters() -> ! {
     loop {
@@ -49,8 +55,6 @@ fn hamsters() -> ! {
         pets::delay(10);
     }
 }
-
-static CAT_STACK: Stack<1024> = Stack::new();
 
 /// Our 'cat' task
 fn cats() -> ! {
