@@ -1,7 +1,4 @@
-//! A simple example showing how to use pets with nested task and stack definitions.
-//!
-//! It starts three tasks, each of which periodically prints a defmt log and
-//! then sleeps.
+//! An example with three tasks that each take one tick
 
 // Copyright (c) 2025 Ferrous Systems
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -43,24 +40,24 @@ fn main() -> ! {
 /// Our 'rabbit' task
 fn rabbits() -> ! {
     loop {
-        defmt::info!("Rabbit! (back in 5)");
-        pets::delay(5);
+        defmt::info!("Rabbit!");
+        cortex_m::asm::wfi();
     }
 }
 
 /// Our 'hamster' task
 fn hamsters() -> ! {
     loop {
-        defmt::info!("Hamster! (back in 10)");
-        pets::delay(10);
+        defmt::info!("Hamster!");
+        cortex_m::asm::wfi();
     }
 }
 
 /// Our 'cat' task
 fn cats() -> ! {
     loop {
-        defmt::info!("Cat! (back in 3)");
-        pets::delay(3);
+        defmt::info!("Cat!");
+        cortex_m::asm::wfi();
     }
 }
 
