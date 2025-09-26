@@ -5,11 +5,19 @@
 authors = ["Jonathan Pallant <jonathan.pallant@ferrous-systems.com>"]
 edition = "2024"
 license = "GPL-3.0-or-later"
-name = "pets"
+name = "pets-examples"
 readme = "README.md"
 repository = "https://github.com/jonathanpallant/pets"
 version = "0.1.0"
+default-run = "example1"
 
 [dependencies]
-cortex-m = "0.7.7"
+cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7.5"
 defmt = "1.0.1"
+defmt-semihosting = "0.3.0"
+heapless = "0.9.1"
+pets = { path = ".." }
+
+[profile.release]
+debug = 2

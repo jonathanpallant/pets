@@ -7,6 +7,8 @@ To run the examples, you need Rust, `qemu-system-arm` and `defmt-print` installe
 ```bash
 sudo apt install qemu-system-arm
 cargo install defmt-print
+git clone https://github.com/jonathanpallant/pets
+cd pets/examples
 cargo run --bin example1
 ```
 
