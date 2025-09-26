@@ -1,3 +1,11 @@
+//! A simple example showing how to use pets
+//!
+//! It starts three tasks, each of which periodically prints a defmt log and
+//! then sleeps.
+
+// Copyright (c) 2025 Ferrous Systems
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #![no_std]
 #![no_main]
 
@@ -25,8 +33,7 @@ fn main() -> ! {
 
 static RABBIT_STACK: Stack<1024> = Stack::new();
 
-// #[pets::task]
-
+/// Our 'rabbit' task
 fn rabbits() -> ! {
     loop {
         defmt::info!("Rabbit! (back in 5)");
@@ -36,7 +43,7 @@ fn rabbits() -> ! {
 
 static HAMSTER_STACK: Stack<1024> = Stack::new();
 
-// #[pets::task]
+/// Our 'hamster' task
 fn hamsters() -> ! {
     loop {
         defmt::info!("Hamster! (back in 10)");
@@ -46,10 +53,33 @@ fn hamsters() -> ! {
 
 static CAT_STACK: Stack<1024> = Stack::new();
 
-// #[pets::task]
+/// Our 'cat' task
 fn cats() -> ! {
     loop {
         defmt::info!("Cat! (back in 3)");
         pets::delay(3);
     }
 }
+
+/// Called when a panic occurs.
+///
+/// Logs the panic to defmt and then crashes the CPU.
+#[panic_handler]
+fn panic(info: &core::panic::PanicInfo) -> ! {
+    defmt::println!("PANIC: {}", defmt::Debug2Format(info));
+    cortex_m::asm::udf();
+}
+
+/// Called when a HardFault occurs.
+///
+/// Logs the fault to defmt and then crashes the CPU.
+#[cortex_m_rt::exception]
+unsafe fn HardFault(info: &cortex_m_rt::ExceptionFrame) -> ! {
+    defmt::println!("FAULT: {}", defmt::Debug2Format(info));
+    cortex_m::asm::udf();
+}
+
+// Log scheduler ticks in the defmt logs
+defmt::timestamp!("{=u32:010}", pets::now());
+
+// End of File

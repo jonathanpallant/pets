@@ -1,2 +1,5 @@
+# Copyright (c) 2025 Ferrous Systems
+# SPDX-License-Identifier: CC0-1.0
 /target
 Cargo.lock
+pets.sublime-workspace

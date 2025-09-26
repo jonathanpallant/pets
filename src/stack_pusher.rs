@@ -1,5 +1,8 @@
 //! Holds the [`StackPusher`] type and methods
 
+// Copyright (c) 2025 Ferrous Systems
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 /// A helper for pushing things into a full-descending Arm EABI stack
 pub(crate) struct StackPusher(*mut u32);
 
@@ -19,8 +22,10 @@ impl StackPusher {
 
     /// Push something onto the stack, incrementing the value
     pub(crate) fn push(&mut self, value: u32) {
-        self.0 = unsafe { self.0.offset(-1) };
+        // SAFETY: We required that the stack was large enough when this
+        // object was created, so we can assume it is large enough here.
         unsafe {
+            self.0 = self.0.offset(-1);
             self.0.write_volatile(value);
         }
     }
@@ -30,3 +35,5 @@ impl StackPusher {
         self.0
     }
 }
+
+// End of File

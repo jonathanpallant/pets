@@ -1,7 +1,14 @@
+# Copyright (c) 2025 Ferrous Systems
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 [package]
-name = "pets"
-version = "0.1.0"
+authors = ["Jonathan Pallant <jonathan.pallant@ferrous-systems.com>"]
 edition = "2024"
+license = "GPL-3.0-or-later"
+name = "pets"
+readme = "README.md"
+repository = "https://github.com/jonathanpallant/pets"
+version = "0.1.0"
 
 [dependencies]
 cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
@@ -9,3 +16,6 @@ cortex-m-rt = "0.7.5"
 defmt = "1.0.1"
 defmt-semihosting = "0.3.0"
 heapless = "0.9.1"
+
+[profile.release]
+debug = 2

@@ -2,7 +2,8 @@
 
 # This requires you to previously run `cargo install defmt-print`
 
-# See https://ferroussystems.hackmd.io/@jonathanpallant/ryA1S6QDJx for a description of all the relevant QEMU machines
+# Copyright (c) 2025 Ferrous Systems
+# SPDX-License-Identifier: CC0-1.0
 
 ELF_BINARY=$1
 shift

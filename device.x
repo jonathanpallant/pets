@@ -1,3 +1,6 @@
+# Copyright (c) 2025 Ferrous Systems
+# SPDX-License-Identifier: CC0-1.0
+
 PROVIDE(Uart0Rx = DefaultHandler);
 PROVIDE(Uart0Tx = DefaultHandler);
 PROVIDE(Uart1Rx = DefaultHandler);
