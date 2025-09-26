@@ -21,7 +21,7 @@ static TASK_LIST: [Task; 3] = [
     Task::new(cats, &CAT_STACK),
 ];
 
-static SCHEDULER: pets::Scheduler = pets::Scheduler::new(&TASK_LIST);
+static SCHEDULER: Scheduler = Scheduler::new(&TASK_LIST);
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
