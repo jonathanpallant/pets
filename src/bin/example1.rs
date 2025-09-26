@@ -79,6 +79,6 @@ unsafe fn HardFault(info: &cortex_m_rt::ExceptionFrame) -> ! {
 }
 
 // Log scheduler ticks in the defmt logs
-defmt::timestamp!("{=u32:010}", pets::now());
+defmt::timestamp!("{=u32:010} {}", pets::now(), pets::task_id());
 
 // End of File

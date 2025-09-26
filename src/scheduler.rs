@@ -12,6 +12,45 @@ use crate::{StackPusher, Task};
 /// We need this so that the free-standing PendSV handler knows where all our system state is.
 pub(crate) static SCHEDULER_PTR: AtomicPtr<Scheduler> = AtomicPtr::new(core::ptr::null_mut());
 
+/// Represents a Task
+#[derive(Copy, Clone, Debug)]
+pub struct TaskId(usize);
+
+impl TaskId {
+    /// Represents the Task ID we produce when the scheduler isn't running
+    const INVALID_ID: usize = usize::MAX;
+
+    /// Is this the invalid Task ID?
+    pub const fn is_invalid(self) -> bool {
+        self.0 == Self::INVALID_ID
+    }
+
+    /// Create an invalid Task ID
+    pub(crate) const fn invalid() -> TaskId {
+        TaskId(Self::INVALID_ID)
+    }
+}
+
+impl defmt::Format for TaskId {
+    fn format(&self, fmt: defmt::Formatter) {
+        if self.is_invalid() {
+            defmt::write!(fmt, "T---");
+        } else {
+            defmt::write!(fmt, "T{=usize:03}", self.0);
+        }
+    }
+}
+
+impl core::fmt::Display for TaskId {
+    fn fmt(&self, fmt: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        if self.is_invalid() {
+            write!(fmt, "T---")
+        } else {
+            write!(fmt, "T{:03}", self.0)
+        }
+    }
+}
+
 /// A pre-emptive task-switching scheduler
 ///
 /// It time slices tasks in a round-robin fashion, whether or not they have work to do.
@@ -174,9 +213,19 @@ impl Scheduler {
     /// Ideally call this from a SysTick handler
     pub fn sched_tick(&self) {
         defmt::debug!("Tick!");
+        for task in self.task_list.iter() {
+            task.unpark();
+        }
         self.ticks.fetch_add(1, Ordering::Relaxed);
-        self.pick_next_task();
-        cortex_m::peripheral::SCB::set_pendsv();
+        match self.pick_next_task() {
+            TaskSelection::NewTask(task_id) => {
+                self.next_task.store(task_id.0, Ordering::Relaxed);
+                cortex_m::peripheral::SCB::set_pendsv();
+            }
+            TaskSelection::CurrentTask | TaskSelection::NoTasks => {
+                // nothing to
+            }
+        }
     }
 
     /// Get current tick count
@@ -185,9 +234,30 @@ impl Scheduler {
     }
 
     /// Switch tasks, because this one has nothing to do right now
-    pub fn yield_current_task(&self) {
-        self.pick_next_task();
-        cortex_m::peripheral::SCB::set_pendsv();
+    pub fn yield_until_tick(&self) {
+        let task_id = self.current_task.load(Ordering::Relaxed);
+        defmt::trace!("- yield_until_tick on T{=usize:03}", task_id);
+        let task = &self.task_list[task_id];
+        task.park();
+        match self.pick_next_task() {
+            TaskSelection::NewTask(task_id) => {
+                self.next_task.store(task_id.0, Ordering::Relaxed);
+                cortex_m::peripheral::SCB::set_pendsv();
+            }
+            TaskSelection::CurrentTask => {
+                panic!("Picked a task we just parked?!");
+            }
+            TaskSelection::NoTasks => {
+                defmt::trace!("- Sleep!");
+                cortex_m::asm::wfi();
+                cortex_m::asm::isb();
+            }
+        }
+    }
+
+    /// Get the current Task ID
+    pub fn current_task_id(&self) -> TaskId {
+        TaskId(self.current_task.load(Ordering::Relaxed))
     }
 
     /// Get the handler to the global scheduler
@@ -209,18 +279,56 @@ impl Scheduler {
     ///
     /// Updates `self.next_task` but doesn't trigger a task switch. Set PendSV
     /// to do that.
-    fn pick_next_task(&self) {
-        cortex_m::interrupt::free(|_cs| {
-            let next_task = self.next_task.load(Ordering::Relaxed);
-            let maybe_next_task = next_task + 1;
-            let new_next_task = if maybe_next_task >= self.task_list.len() {
-                0
+    ///
+    /// Returns `true` if a new task was picked, or `false` if no tasks were available
+    fn pick_next_task(&self) -> TaskSelection {
+        defmt::trace!("> picking a task");
+        let task_sel = cortex_m::interrupt::free(|_cs| {
+            let current_task = self.current_task.load(Ordering::Relaxed);
+            let mut selected_next_task = None;
+            let num_tasks = self.task_list.len();
+            // go through all the tasks, starting with the current task
+            for (idx, task) in self
+                .task_list
+                .iter()
+                .enumerate()
+                .chain(self.task_list.iter().enumerate())
+                .skip(current_task + 1)
+                .take(num_tasks)
+            {
+                // is this a task we can run right now?
+                if !task.parked() {
+                    selected_next_task = Some(idx);
+                    // no sense in checking any more tasks
+                    break;
+                }
+            }
+
+            if let Some(task_id) = selected_next_task {
+                if task_id == current_task {
+                    TaskSelection::CurrentTask
+                } else {
+                    TaskSelection::NewTask(TaskId(task_id))
+                }
             } else {
-                maybe_next_task
-            };
-            self.next_task.store(new_next_task, Ordering::Relaxed);
+                TaskSelection::NoTasks
+            }
         });
+
+        defmt::trace!("< picked {}", task_sel);
+        task_sel
     }
+}
+
+/// Describes which task we picked
+#[derive(defmt::Format)]
+enum TaskSelection {
+    /// We picked a new task - do a task switch
+    NewTask(TaskId),
+    /// We like the current task - no switch required
+    CurrentTask,
+    /// There are no tasks - you should probably sleep
+    NoTasks,
 }
 
 // End of File

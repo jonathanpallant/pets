@@ -28,22 +28,25 @@ pub use scheduler::Scheduler;
 pub use stack::Stack;
 pub use task::Task;
 
+use scheduler::TaskId;
 use stack_pusher::StackPusher;
 
 /// Delay a task for at least the given period, measured in timer ticks.
 ///
 /// Calling `delay(0)` is basically just a yield.
 pub fn delay(ticks: u32) {
+    defmt::trace!("Sleeping for {} ticks", ticks);
     let scheduler = Scheduler::get_scheduler().unwrap();
     let start = scheduler.now();
     loop {
         // yield first, so delay(0) does at least one task switch
-        scheduler.yield_current_task();
+        scheduler.yield_until_tick();
         // is it time to leave?
         let delta = scheduler.now().wrapping_sub(start);
         if delta >= ticks {
             break;
         }
+        defmt::trace!("Task {} still sleeping...", task_id());
     }
 }
 
@@ -53,6 +56,15 @@ pub fn now() -> u32 {
         scheduler.now()
     } else {
         0
+    }
+}
+
+/// Get the currently running task ID
+pub fn task_id() -> TaskId {
+    if let Some(scheduler) = Scheduler::get_scheduler() {
+        scheduler.current_task_id()
+    } else {
+        TaskId::invalid()
     }
 }
 

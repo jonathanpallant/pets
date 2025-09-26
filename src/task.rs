@@ -3,7 +3,7 @@
 // Copyright (c) 2025 Ferrous Systems
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::sync::atomic::{AtomicPtr, Ordering};
+use core::sync::atomic::{AtomicPtr, AtomicU32, Ordering};
 
 use crate::Stack;
 
@@ -29,11 +29,18 @@ pub struct Task {
     stack: AtomicPtr<u32>,
     /// The function to call when the task first starts
     entry_fn: TaskEntryFn,
+    /// Information about the task
+    flags: AtomicU32,
+    /// Padding it out to a 16-byte structure
+    _reserved: u32,
 }
 
 impl Task {
     /// The size of a task object is `pow(2, SIZE_BITS)`.
-    pub const SIZE_BITS: usize = 3;
+    pub const SIZE_BITS: usize = 4;
+
+    /// The flag that indicates the task is parked
+    const FLAG_PARK: u32 = 1 << 0;
 
     /// A compile-time check that the size of a [`Task`] is what we said it was.
     const _CHECK: () = const {
@@ -46,6 +53,8 @@ impl Task {
         Task {
             entry_fn,
             stack: AtomicPtr::new(stack.top()),
+            flags: AtomicU32::new(0),
+            _reserved: 0,
         }
     }
 
@@ -68,6 +77,27 @@ impl Task {
     /// proceeding it.
     pub(crate) unsafe fn set_stack(&self, new_stack: *mut u32) {
         self.stack.store(new_stack, Ordering::Relaxed)
+    }
+
+    /// Park this task
+    ///
+    /// If a task is parked, it will not be resumed until the next tick.
+    pub(crate) fn park(&self) {
+        self.flags.fetch_or(Self::FLAG_PARK, Ordering::Relaxed);
+    }
+
+    /// Is this task parked?
+    ///
+    /// See [`Task::park`]
+    pub(crate) fn parked(&self) -> bool {
+        (self.flags.load(Ordering::Relaxed) & Self::FLAG_PARK) != 0
+    }
+
+    /// Unpark this task
+    ///
+    /// See [`Task::park`]
+    pub(crate) fn unpark(&self) {
+        self.flags.fetch_and(!Self::FLAG_PARK, Ordering::Relaxed);
     }
 }
 
