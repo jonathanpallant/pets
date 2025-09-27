@@ -83,7 +83,16 @@ impl Scheduler {
     ///
     /// Make space for sixteen 32-bit registers in the task state, plus some
     /// headroom
+    #[cfg(arm_abi = "eabi")]
     pub(crate) const MIN_STACK_SIZE: usize = (4 * 16) + 8;
+
+    /// This is the minimum stack we can support, because of the state we need to push
+    ///
+    /// Make space for sixteen 32-bit registers, thirty-two 32-bit FPU
+    /// registers, plus FPU status register, in the task state, plus some
+    /// headroom
+    #[cfg(arm_abi = "eabihf")]
+    pub(crate) const MIN_STACK_SIZE: usize = (4 * 49) + 8;
 
     /// The value of the Processor Status Register when a task starts
     ///
@@ -162,6 +171,13 @@ impl Scheduler {
             stack_pusher.push(0);
 
             // Additional task state we persist
+
+            // Extra copy of LR so we can check for FPU status. This copy does
+            // not have the FPU bit set, so we don't need to push an Extended
+            // Frame above, or the other 16 FPU registers This will return us
+            // to Thread Mode, Process Stack
+            #[cfg(arm_abi = "eabihf")]
+            stack_pusher.push(0xFFFFFFFD);
 
             // R11
             stack_pusher.push(0);
