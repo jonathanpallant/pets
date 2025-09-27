@@ -11,5 +11,12 @@ rustflags = [
 ]
 runner = "./qemu_run.sh"
 
+[target.thumbv7em-none-eabihf]
+rustflags = [
+    "-Clink-arg=-Tlink.x",
+    "-Clink-arg=-Tdefmt.x",
+]
+runner = "./qemu_run.sh"
+
 [env]
 DEFMT_LOG="debug"
