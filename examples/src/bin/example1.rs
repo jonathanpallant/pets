@@ -34,8 +34,10 @@ static RABBIT_STACK: Stack<1024> = Stack::new();
 
 /// Our 'rabbit' task
 fn rabbits() -> ! {
+    let mut counter = 0.0;
     loop {
-        defmt::info!("Rabbit! (back in 5)");
+        defmt::info!("Rabbit! (back in 5) count={=f32}", counter);
+        counter += 0.1;
         pets::delay(5);
     }
 }
