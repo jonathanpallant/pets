@@ -129,7 +129,7 @@ unsafe extern "C" fn PendSV() {
     mrs     r0, psp
 
     // Push the additional state into stack at r0
-    stmfd   r0!, {{ r4 - r11 }}
+    stmdb   r0!, {{ r4 - r11 }}
 
     // save the stack pointer (in r0) to the task object
     str     r0, [r3, r2]
@@ -151,7 +151,7 @@ unsafe extern "C" fn PendSV() {
     ldr     r0, [r3, r2]
 
     // Pop the additional state from it
-    ldmfd   r0!, {{ r4 - r11 }}
+    ldmia   r0!, {{ r4 - r11 }}
 
     // Set the current task stack pointer
     msr     psp, r0
