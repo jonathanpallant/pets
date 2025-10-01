@@ -1,7 +1,7 @@
-name: workflow-clippy
+name: clippy
 on: [push, pull_request, merge_group]
 jobs:
-  job-clippy-lib:
+  clippy-lib:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -12,7 +12,7 @@ jobs:
           rustup target add ${{ matrix.target }}
       - run: |
           cargo clippy --target=${{ matrix.target }}
-  job-clippy-examples:
+  clippy-examples:
     runs-on: ubuntu-latest
     strategy:
       matrix:

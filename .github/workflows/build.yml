@@ -1,7 +1,7 @@
-name: workflow-build
+name: build
 on: [push, pull_request, merge_group]
 jobs:
-  job-build-lib:
+  build-lib:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -12,7 +12,7 @@ jobs:
           rustup target add ${{ matrix.target }}
       - run: |
           cargo build --all-features --target=${{ matrix.target }}
-  job-build-examples:
+  build-examples:
     runs-on: ubuntu-latest
     strategy:
       matrix:

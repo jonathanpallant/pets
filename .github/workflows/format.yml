@@ -1,13 +1,13 @@
-name: workflow-format
+name: format
 on: [push, pull_request, merge_group]
 jobs:
-  job-format-lib:
+  format-lib:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: |
           cargo fmt -- --check
-  job-format-examples:
+  format-examples:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

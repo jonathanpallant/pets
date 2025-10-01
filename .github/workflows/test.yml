@@ -1,7 +1,7 @@
-name: workflow-test
+name: test
 on: [push, pull_request, merge_group]
 jobs:
-  job-test-example:
+  test-example:
     runs-on: ubuntu-latest
     strategy:
       matrix:
