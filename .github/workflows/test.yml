@@ -1,0 +1,19 @@
+name: workflow-test
+on: [push, pull_request, merge_group]
+jobs:
+  job-test-example:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.base-none-eabi, thumbv8m.main-none-eabi, thumbv8m.main-none-eabihf]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          rustup target add ${{ matrix.target }}
+      - run: |
+          curl -sSL https://github.com/jonathanpallant/qemu9-for-ubuntu-2404/releases/download/qemu-9.2.3%2Bbuild0/qemu-9.2.3-ubuntu-24.04.tar.gz | sudo tar xvzf - -C /
+      - run: |
+          export PATH=/opt/qemu/bin:$PATH
+          cd example
+          cargo run --target=${{ matrix.target }} --release --bin ci-check | tee ci-check-${{ matrix.target }}.txt
+          diff ci-check-${{ matrix.target }}.txt ./reference/ci-check-${{ matrix.target }}.txt

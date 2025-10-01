@@ -1,0 +1,26 @@
+name: workflow-build
+on: [push, pull_request, merge_group]
+jobs:
+  job-build-lib:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.base-none-eabi, thumbv8m.main-none-eabi, thumbv8m.main-none-eabihf]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          rustup target add ${{ matrix.target }}
+      - run: |
+          cargo build --all-features --target=${{ matrix.target }}
+  job-build-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.base-none-eabi, thumbv8m.main-none-eabi, thumbv8m.main-none-eabihf]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          rustup target add ${{ matrix.target }}
+      - run: |
+          cd example
+          cargo build --target=${{ matrix.target }} --release
