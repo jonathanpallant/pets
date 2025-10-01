@@ -8,11 +8,18 @@ jobs:
         target: [thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.base-none-eabi, thumbv8m.main-none-eabi, thumbv8m.main-none-eabihf]
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - name: Install Target
+        run: |
           rustup target add ${{ matrix.target }}
-      - run: |
+      - name: Install Dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install libpixman-1-0 libfdt1 libglib2.0-0t64
+      - name: Install QEMU
+        run: |
           curl -sSL https://github.com/jonathanpallant/qemu9-for-ubuntu-2404/releases/download/qemu-9.2.3%2Bbuild0/qemu-9.2.3-ubuntu-24.04.tar.gz | sudo tar xvzf - -C /
-      - run: |
+      - name: Run example and check outputs
+        run: |
           export PATH=/opt/qemu/bin:$PATH
           cd examples
           cargo run --target=${{ matrix.target }} --release --bin ci-check | tee ci-check-${{ matrix.target }}.txt
