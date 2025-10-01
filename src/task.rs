@@ -83,7 +83,16 @@ impl Task {
     ///
     /// If a task is parked, it will not be resumed until the next tick.
     pub(crate) fn park(&self) {
+        #[cfg(not(any(arm_architecture = "v6-m", arm_architecture = "v8-m.base")))]
         self.flags.fetch_or(Self::FLAG_PARK, Ordering::Relaxed);
+
+        #[cfg(any(arm_architecture = "v6-m", arm_architecture = "v8-m.base"))]
+        cortex_m::interrupt::free(|_| {
+            self.flags.store(
+                self.flags.load(Ordering::Relaxed) | Self::FLAG_PARK,
+                Ordering::Relaxed,
+            );
+        });
     }
 
     /// Is this task parked?
@@ -97,7 +106,16 @@ impl Task {
     ///
     /// See [`Task::park`]
     pub(crate) fn unpark(&self) {
+        #[cfg(not(any(arm_architecture = "v6-m", arm_architecture = "v8-m.base")))]
         self.flags.fetch_and(!Self::FLAG_PARK, Ordering::Relaxed);
+
+        #[cfg(any(arm_architecture = "v6-m", arm_architecture = "v8-m.base"))]
+        cortex_m::interrupt::free(|_| {
+            self.flags.store(
+                self.flags.load(Ordering::Relaxed) & !Self::FLAG_PARK,
+                Ordering::Relaxed,
+            );
+        });
     }
 }
 

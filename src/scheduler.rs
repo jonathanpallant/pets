@@ -134,6 +134,7 @@ impl Scheduler {
         // Must do this /after/ setting SCHEDULER_PTR because the SysTick
         // exception handler will use SCHEDULER_PTR
         syst.set_reload(systicks_per_sched_tick);
+        syst.set_clock_source(cortex_m::peripheral::syst::SystClkSource::Core);
         syst.clear_current();
         syst.enable_counter();
         syst.enable_interrupt();
@@ -161,39 +162,28 @@ impl Scheduler {
             stack_pusher.push(0);
             // R12
             stack_pusher.push(0);
-            // R3
+            // R0-R3
             stack_pusher.push(0);
-            // R2
             stack_pusher.push(0);
-            // R1
             stack_pusher.push(0);
-            // R0
             stack_pusher.push(0);
 
             // Additional task state we persist
 
             // Extra copy of LR so we can check for FPU status. This copy does
             // not have the FPU bit set, so we don't need to push an Extended
-            // Frame above, or the other 16 FPU registers This will return us
-            // to Thread Mode, Process Stack
-            #[cfg(arm_abi = "eabihf")]
+            // Frame above, or the other 16 FPU registers, into the initial
+            // state. This will return us to Thread Mode, Process Stack.
             stack_pusher.push(0xFFFFFFFD);
 
-            // R11
+            // R4 - R11
             stack_pusher.push(0);
-            // R10
             stack_pusher.push(0);
-            // R9
             stack_pusher.push(0);
-            // R8
             stack_pusher.push(0);
-            // R7
             stack_pusher.push(0);
-            // R6
             stack_pusher.push(0);
-            // R5
             stack_pusher.push(0);
-            // R4
             stack_pusher.push(0);
 
             // Report how much space we used
@@ -232,7 +222,18 @@ impl Scheduler {
         for task in self.task_list.iter() {
             task.unpark();
         }
+
+        #[cfg(not(any(arm_architecture = "v6-m", arm_architecture = "v8-m.base")))]
         self.ticks.fetch_add(1, Ordering::Relaxed);
+
+        #[cfg(any(arm_architecture = "v6-m", arm_architecture = "v8-m.base"))]
+        cortex_m::interrupt::free(|_| {
+            self.ticks.store(
+                self.ticks.load(Ordering::Relaxed).wrapping_add(1),
+                Ordering::Relaxed,
+            );
+        });
+
         match self.pick_next_task() {
             TaskSelection::NewTask(task_id) => {
                 self.next_task.store(task_id.0, Ordering::Relaxed);

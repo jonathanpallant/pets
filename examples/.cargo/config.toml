@@ -4,19 +4,62 @@
 [build]
 target = ["thumbv7em-none-eabi"]
 
+#
+# These targets need an MPS2 machine loaded with the AN386 image (Cortex-M4F)
+#
+
+[target.thumbv6m-none-eabi]
+rustflags = [
+    "-Clink-arg=-Tlink.x",
+    "-Clink-arg=-Tdefmt.x",
+]
+runner = "./qemu_run_mps2.sh"
+
+[target.thumbv7m-none-eabi]
+rustflags = [
+    "-Clink-arg=-Tlink.x",
+    "-Clink-arg=-Tdefmt.x",
+]
+runner = "./qemu_run_mps2.sh"
+
 [target.thumbv7em-none-eabi]
 rustflags = [
     "-Clink-arg=-Tlink.x",
     "-Clink-arg=-Tdefmt.x",
 ]
-runner = "./qemu_run.sh"
+runner = "./qemu_run_mps2.sh"
 
 [target.thumbv7em-none-eabihf]
 rustflags = [
     "-Clink-arg=-Tlink.x",
     "-Clink-arg=-Tdefmt.x",
 ]
-runner = "./qemu_run.sh"
+runner = "./qemu_run_mps2.sh"
+
+#
+# These targets need an MPS2-TZ machine loaded with the AN505 image (Cortex-M33)
+#
+
+[target.thumbv8m.base-none-eabi]
+rustflags = [
+    "-Clink-arg=-Tlink.x",
+    "-Clink-arg=-Tdefmt.x",
+]
+runner = "./qemu_run_mps2tz.sh"
+
+[target.thumbv8m.main-none-eabi]
+rustflags = [
+    "-Clink-arg=-Tlink.x",
+    "-Clink-arg=-Tdefmt.x",
+]
+runner = "./qemu_run_mps2tz.sh"
+
+[target.thumbv8m.main-none-eabihf]
+rustflags = [
+    "-Clink-arg=-Tlink.x",
+    "-Clink-arg=-Tdefmt.x",
+]
+runner = "./qemu_run_mps2tz.sh"
 
 [env]
 DEFMT_LOG="debug"
