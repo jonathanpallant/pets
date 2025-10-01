@@ -134,6 +134,7 @@ impl Scheduler {
         // Must do this /after/ setting SCHEDULER_PTR because the SysTick
         // exception handler will use SCHEDULER_PTR
         syst.set_reload(systicks_per_sched_tick);
+        syst.set_clock_source(cortex_m::peripheral::syst::SystClkSource::Core);
         syst.clear_current();
         syst.enable_counter();
         syst.enable_interrupt();
@@ -232,7 +233,18 @@ impl Scheduler {
         for task in self.task_list.iter() {
             task.unpark();
         }
+
+        #[cfg(not(any(arm_architecture = "v6-m", arm_architecture = "v8-m.base")))]
         self.ticks.fetch_add(1, Ordering::Relaxed);
+
+        #[cfg(any(arm_architecture = "v6-m", arm_architecture = "v8-m.base"))]
+        cortex_m::interrupt::free(|_| {
+            self.ticks.store(
+                self.ticks.load(Ordering::Relaxed).wrapping_add(1),
+                Ordering::Relaxed,
+            );
+        });
+
         match self.pick_next_task() {
             TaskSelection::NewTask(task_id) => {
                 self.next_task.store(task_id.0, Ordering::Relaxed);

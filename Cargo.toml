@@ -16,4 +16,4 @@ defmt = "1.0.1"
 
 [build-dependencies]
 # arm-targets = "0.2.0"
-arm-targets = { git = "https://github.com/thejpster/cortex-ar", rev="988d28712ef06614accacabd4c8990f85ab6c04a" }
+arm-targets = { git = "https://github.com/thejpster/cortex-ar", rev = "988d28712ef06614accacabd4c8990f85ab6c04a" }
