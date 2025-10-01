@@ -24,3 +24,8 @@ jobs:
       - run: |
           cd examples
           cargo clippy --target=${{ matrix.target }}
+  clippy-all:
+    runs-on: ubuntu-latest
+    needs: [clippy-lib, clippy-examples]
+    steps:
+      - run: /bin/true

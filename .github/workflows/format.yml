@@ -14,3 +14,8 @@ jobs:
       - run: |
           cd examples
           cargo fmt -- --check
+  format-all:
+    runs-on: ubuntu-latest
+    needs: [format-lib, format-examples]
+    steps:
+      - run: /bin/true

@@ -24,3 +24,8 @@ jobs:
       - run: |
           cd examples
           cargo build --target=${{ matrix.target }} --release
+  build-all:
+    runs-on: ubuntu-latest
+    needs: [build-lib, build-examples]
+    steps:
+      - run: /bin/true
