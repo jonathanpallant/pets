@@ -18,6 +18,7 @@ defmt = "1.0.1"
 defmt-semihosting = "0.3.0"
 heapless = "0.9.1"
 pets = { path = ".." }
+semihosting = "0.1.20"
 
 [profile.release]
 debug = 2

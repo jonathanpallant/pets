@@ -1,0 +1,26 @@
+name: workflow-clippy
+on: [push, pull_request, merge_group]
+jobs:
+  job-clippy-lib:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.base-none-eabi, thumbv8m.main-none-eabi, thumbv8m.main-none-eabihf]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          rustup target add ${{ matrix.target }}
+      - run: |
+          cargo clippy --target=${{ matrix.target }}
+  job-clippy-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.base-none-eabi, thumbv8m.main-none-eabi, thumbv8m.main-none-eabihf]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          rustup target add ${{ matrix.target }}
+      - run: |
+          cd example
+          cargo clippy --target=${{ matrix.target }}

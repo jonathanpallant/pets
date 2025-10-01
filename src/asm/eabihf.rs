@@ -28,6 +28,9 @@ unsafe extern "C" fn PendSV() {
     // because those registers were stacked by the hardare on exception entry.
 
     core::arch::naked_asm!(r#"
+    // Workaround https://github.com/rust-lang/rust/issues/127269
+    .fpu vfpv3
+
     // r1 = the address of the Scheduler object
     ldr      r1, ={scheduler_ptr}
     ldr      r1, [r1]
