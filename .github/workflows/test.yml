@@ -18,6 +18,9 @@ jobs:
       - name: Install QEMU
         run: |
           curl -sSL https://github.com/jonathanpallant/qemu9-for-ubuntu-2404/releases/download/qemu-9.2.3%2Bbuild0/qemu-9.2.3-ubuntu-24.04.tar.gz | sudo tar xvzf - -C /
+      - name: Install defmt-print
+        run: |
+          cargo install defmt-print
       - name: Run example and check outputs
         run: |
           export PATH=/opt/qemu/bin:$PATH
