@@ -14,6 +14,6 @@ jobs:
           curl -sSL https://github.com/jonathanpallant/qemu9-for-ubuntu-2404/releases/download/qemu-9.2.3%2Bbuild0/qemu-9.2.3-ubuntu-24.04.tar.gz | sudo tar xvzf - -C /
       - run: |
           export PATH=/opt/qemu/bin:$PATH
-          cd example
+          cd examples
           cargo run --target=${{ matrix.target }} --release --bin ci-check | tee ci-check-${{ matrix.target }}.txt
           diff ci-check-${{ matrix.target }}.txt ./reference/ci-check-${{ matrix.target }}.txt
