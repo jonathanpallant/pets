@@ -22,5 +22,5 @@ jobs:
       - run: |
           rustup target add ${{ matrix.target }}
       - run: |
-          cd example
+          cd examples
           cargo clippy --target=${{ matrix.target }}
