@@ -7,10 +7,10 @@ use crate::UnsafeCell;
 
 /// A task stack, with the given size `LEN` bytes.
 ///
-/// The value of `LEN` must be a multiple of 4, which is checked with an
-/// assert.
-///
 /// We align stacks on 8-byte boundaries, as required by AAPCS.
+///
+/// The value of `LEN` must be a multiple of 8, which is checked with an
+/// assert, to ensure the top and bottom are both 8-byte aligned.
 #[repr(align(8))]
 pub struct Stack<const LEN: usize> {
     /// The memory reserved for the task stack
@@ -20,7 +20,7 @@ pub struct Stack<const LEN: usize> {
 impl<const LEN: usize> Stack<LEN> {
     /// Create a new stack
     pub const fn new() -> Self {
-        assert!(LEN.is_multiple_of(4));
+        assert!(LEN.is_multiple_of(8));
         Self {
             contents: UnsafeCell::new([0u8; LEN]),
         }
