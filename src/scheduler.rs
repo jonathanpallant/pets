@@ -302,6 +302,9 @@ impl Scheduler {
         defmt::trace!("> picking a task");
         let task_sel = cortex_m::interrupt::free(|_cs| {
             let current_task = self.current_task.load(Ordering::Relaxed);
+            if current_task == usize::MAX {
+                return TaskSelection::NewTask(TaskId(0));
+            }
             let mut selected_next_task = None;
             let num_tasks = self.task_list.len();
             // Go through all the tasks. We start with the one after the
