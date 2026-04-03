@@ -123,12 +123,7 @@ impl Scheduler {
         }
 
         // remember where this object is - it cannot move because we do not exit this function
-        defmt::info!(
-            "SCHEDULER_PTR @ {=usize:08x}",
-            core::ptr::addr_of!(SCHEDULER_PTR) as usize
-        );
         let self_addr = self as *const Scheduler as *mut Scheduler;
-        defmt::info!("Scheduler @ {=usize:08x}", self_addr as usize);
         SCHEDULER_PTR.store(self_addr, Ordering::Release);
 
         // Must do this /after/ setting SCHEDULER_PTR because the SysTick
